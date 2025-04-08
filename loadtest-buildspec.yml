@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo Installing JMeter...
+      - wget https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
+      - tar -xzf apache-jmeter-5.5.tgz
+      - export PATH=$PATH:/apache-jmeter-5.5/bin
+  pre_build:
+    commands:
+      - echo Preparing load tests...
+      - mvn package -DskipTests
+      - nohup java -jar target/sample-app.jar &
+      - sleep 10
+  build:
+    commands:
+      - echo Running load tests...
+      - jmeter -n -t load-tests/test-plan.jmx -l results.jtl -e -o report
+      - echo Evaluating performance thresholds...
+      - python3 load-tests/evaluate_performance.py results.jtl
+  post_build:
+    commands:
+      - echo Load tests completed on `date`
+      - kill $(lsof -t -i:8080)
+
+reports:
+  jmeter-reports:
+    files:
+      - 'report/**/*'
+    base-directory: '.'
+    file-format: 'JMETERHTML'
+
+artifacts:
+  files:
+    - report/**/*
+    - results.jtl
+  discard-paths: no
