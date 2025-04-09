@@ -12,7 +12,7 @@ phases:
       - echo Running unit tests...
   build:
     commands:
-      - mvn test
+      - mvn clean package
   post_build:
     commands:
       - echo Unit tests completed on `date`
@@ -26,5 +26,6 @@ reports:
 artifacts:
   files:
     - target/*.jar
+    - target/surefire-reports/**/*.xml
   discard-paths: no
 
