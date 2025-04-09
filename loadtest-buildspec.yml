@@ -5,8 +5,10 @@ phases:
     runtime-versions:
       java: corretto17
     commands:
+      - echo "Installing dependencies..."
+      - yum install -y lsof
       - echo "Installing JMeter..."
-      - wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz -O apache-jmeter-5.5.tgz
+      - wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz -O apache-jmeter-5.5.tgz
       - tar -xzf apache-jmeter-5.5.tgz
       - export PATH=$PATH:$PWD/apache-jmeter-5.5/bin
       - echo "Checking CODEBUILD_SRC_DIR..."
@@ -16,8 +18,8 @@ phases:
       - echo "Recursive tree view:"
       - find $CODEBUILD_SRC_DIR
       - echo "Git details:"
-      - cd $CODEBUILD_SRC_DIR && \
-        git remote -v || echo "No git remote info available"
+      - cd $CODEBUILD_SRC_DIR
+      - git remote -v || echo "No git remote info available"
       - git rev-parse HEAD || echo "No git HEAD info available"
       - git status || echo "No git status info available"
       - git branch -a || echo "No git branch info available"
@@ -27,7 +29,7 @@ phases:
       - echo "Preparing load tests..."
       - cd $CODEBUILD_SRC_DIR
       - mvn package -DskipTests
-      - nohup java -jar target/sample-app.jar &
+      - nohup java -jar target/demo-0.0.1-SNAPSHOT.jar &
       - sleep 10
 
   build:
@@ -40,7 +42,7 @@ phases:
   post_build:
     commands:
       - echo "Load tests completed on `date`"
-      - kill $(lsof -t -i:8080)
+      - kill $(lsof -t -i:8080) || echo "No process found on port 8080"
 
 reports:
   jmeter-reports:
