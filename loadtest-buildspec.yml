@@ -6,9 +6,12 @@ phases:
       java: corretto17
     commands:
       - echo "Installing JMeter..."
-      - wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz -O apache-jmeter-5.5.tgz
-      - tar -xzf apache-jmeter-5.5.tgz
-      - export PATH=$PATH:$PWD/apache-jmeter-5.5/bin
+      - JMETER_MIRROR=https://downloads.apache.org/jmeter/binaries
+      - LATEST_VERSION=$(curl -s $JMETER_MIRROR/ | grep -oP 'apache-jmeter-\K[0-9.]+(?=\.tgz)' | sort -V | tail -n1)
+      - echo "Latest version: $LATEST_VERSION"
+      - curl -O $JMETER_MIRROR/apache-jmeter-${LATEST_VERSION}.tgz
+      - tar -xzf apache-jmeter-${LATEST_VERSION}.tgz
+      - export PATH=$PATH:$PWD/apache-jmeter-${LATEST_VERSION}/bin
       - echo "Checking CODEBUILD_SRC_DIR..."
       - echo $CODEBUILD_SRC_DIR
       - echo "Listing contents of CODEBUILD_SRC_DIR:"
