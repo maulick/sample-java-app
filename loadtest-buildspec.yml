@@ -6,9 +6,9 @@ phases:
       java: corretto17
     commands:
       - echo "Installing JMeter..."
-      - wget https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
+      - wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz -O apache-jmeter-5.5.tgz
       - tar -xzf apache-jmeter-5.5.tgz
-      - export PATH=$PATH:/apache-jmeter-5.5/bin
+      - export PATH=$PATH:$PWD/apache-jmeter-5.5/bin
       - echo "Checking CODEBUILD_SRC_DIR..."
       - echo $CODEBUILD_SRC_DIR
       - echo "Listing contents of CODEBUILD_SRC_DIR:"
