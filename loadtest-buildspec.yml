@@ -6,12 +6,9 @@ phases:
       java: corretto17
     commands:
       - echo "Installing JMeter..."
-      - JMETER_MIRROR=https://downloads.apache.org/jmeter/binaries
-      - LATEST_VERSION=$(curl -s $JMETER_MIRROR/ | grep -oP 'apache-jmeter-\K[0-9.]+(?=\.tgz)' | sort -V | tail -n1)
-      - echo "Latest version: $LATEST_VERSION"
-      - curl -O $JMETER_MIRROR/apache-jmeter-${LATEST_VERSION}.tgz
-      - tar -xzf apache-jmeter-${LATEST_VERSION}.tgz
-      - export PATH=$PATH:$PWD/apache-jmeter-${LATEST_VERSION}/bin
+      - wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz -O apache-jmeter-5.5.tgz
+      - tar -xzf apache-jmeter-5.5.tgz
+      - export PATH=$PATH:$PWD/apache-jmeter-5.5/bin
       - echo "Checking CODEBUILD_SRC_DIR..."
       - echo $CODEBUILD_SRC_DIR
       - echo "Listing contents of CODEBUILD_SRC_DIR:"
@@ -19,11 +16,12 @@ phases:
       - echo "Recursive tree view:"
       - find $CODEBUILD_SRC_DIR
       - echo "Git details:"
-      - cd $CODEBUILD_SRC_DIR
-      - git remote -v || echo "No git remote info available"
+      - cd $CODEBUILD_SRC_DIR && \
+        git remote -v || echo "No git remote info available"
       - git rev-parse HEAD || echo "No git HEAD info available"
       - git status || echo "No git status info available"
       - git branch -a || echo "No git branch info available"
+
   pre_build:
     commands:
       - echo "Preparing load tests..."
@@ -31,12 +29,14 @@ phases:
       - mvn package -DskipTests
       - nohup java -jar target/sample-app.jar &
       - sleep 10
+
   build:
     commands:
       - echo "Running load tests..."
       - jmeter -n -t load-tests/test-plan.jmx -l results.jtl -e -o report
       - echo "Evaluating performance thresholds..."
       - python3 load-tests/evaluate_performance.py results.jtl
+
   post_build:
     commands:
       - echo "Load tests completed on `date`"
