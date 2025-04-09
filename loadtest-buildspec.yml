@@ -5,25 +5,38 @@ phases:
     runtime-versions:
       java: corretto17
     commands:
-      - echo Installing JMeter...
+      - echo "Installing JMeter..."
       - wget https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.5.tgz
       - tar -xzf apache-jmeter-5.5.tgz
       - export PATH=$PATH:/apache-jmeter-5.5/bin
+      - echo "Checking CODEBUILD_SRC_DIR..."
+      - echo $CODEBUILD_SRC_DIR
+      - echo "Listing contents of CODEBUILD_SRC_DIR:"
+      - ls -al $CODEBUILD_SRC_DIR
+      - echo "Recursive tree view:"
+      - find $CODEBUILD_SRC_DIR
+      - echo "Git details:"
+      - cd $CODEBUILD_SRC_DIR
+      - git remote -v || echo "No git remote info available"
+      - git rev-parse HEAD || echo "No git HEAD info available"
+      - git status || echo "No git status info available"
+      - git branch -a || echo "No git branch info available"
   pre_build:
     commands:
-      - echo Preparing load tests...
+      - echo "Preparing load tests..."
+      - cd $CODEBUILD_SRC_DIR
       - mvn package -DskipTests
       - nohup java -jar target/sample-app.jar &
       - sleep 10
   build:
     commands:
-      - echo Running load tests...
+      - echo "Running load tests..."
       - jmeter -n -t load-tests/test-plan.jmx -l results.jtl -e -o report
-      - echo Evaluating performance thresholds...
+      - echo "Evaluating performance thresholds..."
       - python3 load-tests/evaluate_performance.py results.jtl
   post_build:
     commands:
-      - echo Load tests completed on `date`
+      - echo "Load tests completed on `date`"
       - kill $(lsof -t -i:8080)
 
 reports:
@@ -38,3 +51,4 @@ artifacts:
     - report/**/*
     - results.jtl
   discard-paths: no
+
