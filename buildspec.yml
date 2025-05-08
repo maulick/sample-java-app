@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - echo Installing Maven...
+      - yum install -y maven
+  pre_build:
+    commands:
+      - echo Running unit tests...
+  build:
+    commands:
+      - mvn clean package
+  post_build:
+    commands:
+      - echo Unit tests completed on `date`
+
+reports:
+  junit:
+    files:
+      - 'target/surefire-reports/**/*.xml'
+    file-format: 'JUNITXML'
+
+artifacts:
+  files:
+    - target/*.jar
+    - target/surefire-reports/**/*.xml
+  discard-paths: no
